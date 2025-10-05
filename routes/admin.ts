@@ -8,8 +8,11 @@ import {
     ErrorResponseSchema
 } from '../schemas/openapi'
 
+// Define the complete environment interface for Cloudflare Workers
 interface Env {
   API_KEYS?: string
+  ADMIN_SECRET?: string
+  ENVIRONMENT?: string
 }
 
 const adminRoute = new OpenAPIHono<{ Bindings: Env }>()

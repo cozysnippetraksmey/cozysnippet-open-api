@@ -4,10 +4,18 @@
   "main": "src/index.ts",
   "compatibility_date": "2025-10-04",
   "vars": {
+    "ENVIRONMENT": "development",
     "API_KEYS": "cz_dev_key_for_local_development_only",
     "ADMIN_SECRET": "admin_dev_secret_change_in_production"
   },
   "env": {
+    "development": {
+      "vars": {
+        "ENVIRONMENT": "development",
+        "API_KEYS": "cz_dev_key_for_local_development_only",
+        "ADMIN_SECRET": "admin_dev_secret_change_in_production"
+      }
+    },
     "production": {
       "name": "cozysnippet-api-prod",
       "vars": {

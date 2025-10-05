@@ -140,6 +140,82 @@ app.openapi(healthRoute, (c) => {
     })
 })
 
+// Debug endpoint to verify environment variables (remove in production)
+const debugEnvRoute = createRoute({
+  method: 'get',
+  path: '/debug/env',
+  tags: ['Health'],
+  summary: 'Environment Variables Debug',
+  description: 'Check which environment variables are loaded and their source (for development only)',
+  responses: {
+    200: {
+      description: 'Environment variables information',
+      content: {
+        'application/json': {
+          schema: z.object({
+            environmentSource: z.string().openapi({ example: 'dev-vars or wrangler-jsonc-main or wrangler-jsonc-production' }),
+            environment: z.string().openapi({ example: 'development' }),
+            detectedSource: z.string().openapi({ example: '.dev.vars detected - has ENVIRONMENT variable' }),
+            hasApiKeys: z.boolean().openapi({ example: true }),
+            apiKeysCount: z.number().openapi({ example: 2 }),
+            hasAdminSecret: z.boolean().openapi({ example: true }),
+            deploymentContext: z.string().openapi({ example: 'local-development or cloudflare-production' })
+          })
+        }
+      }
+    }
+  }
+})
+
+app.openapi(debugEnvRoute, (c) => {
+    const environment = c.env.ENVIRONMENT || 'not_set'
+    const hasApiKeys = !!c.env.API_KEYS
+    const apiKeysCount = c.env.API_KEYS?.split(',').length || 0
+    const hasAdminSecret = !!c.env.ADMIN_SECRET
+
+    // Determine the source based on environment and context
+    let environmentSource = 'unknown'
+    let detectedSource = 'unknown'
+    let deploymentContext = 'unknown'
+
+    // Check if we're in development or production
+    if (environment === 'development') {
+        environmentSource = 'dev-vars'
+        detectedSource = '.dev.vars file (ENVIRONMENT=development set)'
+        deploymentContext = 'local-development'
+    } else if (environment === 'production') {
+        environmentSource = 'wrangler-jsonc-production'
+        detectedSource = 'wrangler.jsonc env.production.vars section'
+        deploymentContext = 'cloudflare-production'
+    } else if (environment === 'staging') {
+        environmentSource = 'wrangler-jsonc-staging'
+        detectedSource = 'wrangler.jsonc env.staging.vars section'
+        deploymentContext = 'cloudflare-staging'
+    } else if (environment === 'not_set') {
+        // This means we're using the main vars section (no environment specified)
+        environmentSource = 'wrangler-jsonc-main'
+        detectedSource = 'wrangler.jsonc main vars section (fallback)'
+        deploymentContext = 'local-development-fallback'
+    }
+
+    return c.json({
+        environmentSource,
+        environment,
+        detectedSource,
+        hasApiKeys,
+        apiKeysCount,
+        hasAdminSecret,
+        deploymentContext,
+        timestamp: new Date().toISOString(),
+        explanation: {
+            'dev-vars': 'Using .dev.vars file (local development)',
+            'wrangler-jsonc-main': 'Using wrangler.jsonc main vars section',
+            'wrangler-jsonc-production': 'Using wrangler.jsonc env.production.vars',
+            'wrangler-jsonc-staging': 'Using wrangler.jsonc env.staging.vars'
+        }
+    })
+})
+
 // Admin routes (protected with admin secret) - MUST come BEFORE API auth middleware
 app.use('/admin/*', adminAuth())
 app.route('/admin', adminRoute)
