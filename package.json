@@ -1,0 +1,52 @@
+{
+  "name": "cozysnippet-open-api",
+  "version": "1.0.0",
+  "description": "A production-ready API built with Hono",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy --minify",
+    "deploy:staging": "wrangler deploy --env staging --minify",
+    "deploy:production": "wrangler deploy --env production --minify",
+    "cf-typegen": "wrangler types --env-interface CloudflareBindings",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "generate-keys": "node scripts/generate-keys.js",
+    "generate-admin-secret": "node scripts/generate-admin-secret.js",
+    "pre-deploy": "npm run lint && npm run test && npm run build",
+    "deploy:safe": "npm run pre-deploy && npm run deploy:staging",
+    "deploy:prod": "npm run pre-deploy && npm run deploy:production",
+    "logs": "wrangler tail",
+    "logs:production": "wrangler tail --env production"
+  },
+  "dependencies": {
+    "@hono/standard-validator": "^0.1.5",
+    "@hono/swagger-ui": "^0.5.2",
+    "@hono/zod-openapi": "^1.1.3",
+    "hono": "^4.9.9",
+    "hono-openapi": "^1.1.0",
+    "zod": "^4.1.11"
+  },
+  "devDependencies": {
+    "@types/node": "^24.6.2",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "@vitest/coverage-v8": "^1.4.0",
+    "eslint": "^8.57.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.4.0",
+    "wrangler": "^4.42.0"
+  },
+  "keywords": [
+    "hono",
+    "api",
+    "typescript",
+    "cloudflare"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}
